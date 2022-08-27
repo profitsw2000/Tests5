@@ -110,6 +110,30 @@ class BehaviorTest {
         Assert.assertEquals(changedText.text, "Number of results: 0")
     }
 
+    //Убеждаемся, что после успешного выполнения запроса
+    // DetailsScreen отображает нужное количество репозиториев
+    @Test
+    fun test_CountOnDetailsScreen_isValid() {
+        //Через uiDevice находим editText и searchButton
+        val editText = uiDevice.findObject(By.res(packageName, "searchEditText"))
+        val searchButton = uiDevice.findObject(By.res(packageName, "search_button"))
+        //Устанавливаем значение
+        editText.text = "UiAutomator"
+        //нажатие на кнопку
+        searchButton.click()
+
+        //Получение строки с количеством найденных репозиториев
+        val mainActivityCount = uiDevice.wait(Until.findObject(By.res(packageName, "totalCountTextView")),TIMEOUT)
+        val countText = mainActivityCount.text
+        val toDetails: UiObject2 = uiDevice.findObject(By.res(packageName,"toDetailsActivityButton"))
+        toDetails.click()
+
+        uiDevice.waitForWindowUpdate(packageName, 10000)
+
+        val detailsActivityCountText = uiDevice.wait(Until.findObject(By.res(packageName, "totalCountTextView")),TIMEOUT)
+        Assert.assertEquals(detailsActivityCountText.text, countText)
+    }
+
     companion object {
         private const val TIMEOUT = 50000L
     }
