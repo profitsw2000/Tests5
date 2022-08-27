@@ -64,11 +64,11 @@ class BehaviorTest {
     fun test_SearchIsPositive() {
         //Через uiDevice находим editText
         val editText = uiDevice.findObject(By.res(packageName, "searchEditText"))
+        val searchButton = uiDevice.findObject(By.res(packageName, "search_button"))
         //Устанавливаем значение
         editText.text = "UiAutomator"
-        //Отправляем запрос через Espresso
-        Espresso.onView(ViewMatchers.withId(R.id.searchEditText))
-            .perform(ViewActions.pressImeActionButton())
+        //нажатие на кнопку
+        searchButton.click()
 
         //Ожидаем конкретного события: появления текстового поля totalCountTextView.
         //Это будет означать, что сервер вернул ответ с какими-то данными, то есть запрос отработал.
@@ -79,7 +79,7 @@ class BehaviorTest {
             )
         //Убеждаемся, что сервер вернул корректный результат. Обратите внимание, что количество
         //результатов может варьироваться во времени, потому что количество репозиториев постоянно меняется.
-        Assert.assertEquals(changedText.text.toString(), "Number of results: 668")
+        Assert.assertEquals(changedText.text.toString(), "Number of results: 42")
     }
 
     //Убеждаемся, что DetailsScreen открывается
@@ -110,7 +110,83 @@ class BehaviorTest {
         Assert.assertEquals(changedText.text, "Number of results: 0")
     }
 
+    //Убеждаемся, что после успешного выполнения запроса
+    // DetailsScreen отображает нужное количество репозиториев
+    @Test
+    fun test_CountOnDetailsScreen_isValid() {
+        //Через uiDevice находим editText и searchButton
+        val editText = uiDevice.findObject(By.res(packageName, "searchEditText"))
+        val searchButton = uiDevice.findObject(By.res(packageName, "search_button"))
+        //Устанавливаем значение
+        editText.text = "UiAutomator"
+        //нажатие на кнопку
+        searchButton.click()
+
+        //Получение строки с количеством найденных репозиториев
+        val mainActivityCount = uiDevice.wait(Until.findObject(By.res(packageName, "totalCountTextView")),TIMEOUT)
+        val countText = mainActivityCount.text
+        val toDetails: UiObject2 = uiDevice.findObject(By.res(packageName,"toDetailsActivityButton"))
+        toDetails.click()
+
+        //ожидание запуска нового активити
+        uiDevice.waitForWindowUpdate(packageName, TIMEOUT)
+
+        val detailsActivityCountText = uiDevice.wait(Until.findObject(By.res(packageName, "totalCountTextView")),TIMEOUT)
+        Assert.assertEquals(detailsActivityCountText.text, countText)
+    }
+
+    //Убеждаемся, что при нажатии кнопки поиск с пустой строкой поиска
+    //textView с количеством репозиториев остаётся невидимым
+    @Test
+    fun test_CountTextView_isInvisible() {
+        //Через uiDevice находим editText и searchButton
+        val searchButton = uiDevice.findObject(By.res(packageName, "search_button"))
+
+        //нажатие на кнопку
+        searchButton.click()
+
+        //Получение строки с количеством найденных репозиториев
+        val mainActivityCount = uiDevice.wait(Until.findObject(By.res(packageName, "totalCountTextView")),TIMEOUT)
+        Assert.assertNull(mainActivityCount)
+    }
+
+    //Тестирование кнопки "+" на экране DetailsActivity
+    @Test
+    fun test_DetailsScreenIncrementButton() {
+        //Находим кнопку
+        val toDetails: UiObject2 = uiDevice.findObject(By.res(packageName,"toDetailsActivityButton"))
+        //Кликаем по ней
+        toDetails.click()
+
+        //ожидание запуска нового активити
+        uiDevice.waitForWindowUpdate(packageName, TIMEOUT)
+        //Ожидание появления кнопки
+        val incrementButton = uiDevice.wait(Until.findObject(By.res(packageName, "incrementButton")),TIMEOUT)
+        incrementButton.click()
+
+        val countText = uiDevice.wait(Until.findObject(By.res(packageName, "totalCountTextView")),TIMEOUT)
+        Assert.assertEquals(countText.text, "Number of results: 1")
+    }
+
+    //Тестирование кнопки "-" на экране DetailsActivity
+    @Test
+    fun test_DetailsScreenDecrementButton() {
+        //Находим кнопку
+        val toDetails: UiObject2 = uiDevice.findObject(By.res(packageName,"toDetailsActivityButton"))
+        //Кликаем по ней
+        toDetails.click()
+
+        //ожидание запуска нового активити
+        uiDevice.waitForWindowUpdate(packageName, TIMEOUT)
+        //Ожидание появления кнопки
+        val decrementButton = uiDevice.wait(Until.findObject(By.res(packageName, "decrementButton")),TIMEOUT)
+        decrementButton.click()
+
+        val countText = uiDevice.wait(Until.findObject(By.res(packageName, "totalCountTextView")),TIMEOUT)
+        Assert.assertEquals(countText.text, "Number of results: -1")
+    }
+
     companion object {
-        private const val TIMEOUT = 5000L
+        private const val TIMEOUT = 50000L
     }
 }

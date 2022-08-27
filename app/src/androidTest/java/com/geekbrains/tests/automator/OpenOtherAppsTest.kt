@@ -4,9 +4,7 @@ import android.widget.TextView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiScrollable
-import androidx.test.uiautomator.UiSelector
+import androidx.test.uiautomator.*
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,14 +25,14 @@ class OpenOtherAppsTest {
         //В нашем случае это примерно снизу экрана строго вверх. Steps указывает, в
         //какое количество шагов мы хотим осуществить смахивание: чем выше число,
         //тем медленнее будет осуществляться свайп
-        uiDevice.swipe(500, 1500, 500, 0, 5)
+        //uiDevice.swipe(500, 1500, 500, 0, 5)
 
         //Для других устройств список установленных приложений может открываться по другому.
         //Часто это иконка на главном экране под названием Apps.
         //Для этого достаточно свернуть все приложения через uiDevice.pressHome() и
         //и найти Apps на главном экране
-        //val allAppsButton: UiObject = uiDevice.findObject(UiSelector().description("Apps"))
-        //allAppsButton.clickAndWaitForNewWindow()
+        val allAppsButton: UiObject = uiDevice.findObject(UiSelector().description("Apps"))
+        allAppsButton.clickAndWaitForNewWindow()
         //Вполне возможно (встречается на старых устройствах), что приложения находятся на вкладке Apps (будет еще вкладка Widgets).
         //Тогда еще найдем вкладку и выберем ее
         //val appsTab: UiObject = uiDevice.findObject(UiSelector().text("Apps"))
@@ -62,5 +60,24 @@ class OpenOtherAppsTest {
         val settingsValidation =
             uiDevice.findObject(UiSelector().packageName("com.android.settings"))
         Assert.assertTrue(settingsValidation.exists())
+    }
+
+    @Test
+    fun test_OpenMyApp() {
+        uiDevice.pressHome()
+
+        //Открываем экран со списком установленных приложений.
+        val allAppsButton: UiObject = uiDevice.findObject(UiSelector().description("Apps"))
+        allAppsButton.clickAndWaitForNewWindow()
+        val appViews = UiScrollable(UiSelector().scrollable(true))
+
+        //Находим приложение StopWatch
+        val myApp = appViews.getChildByText(UiSelector().className(TextView::class.java.name),"StopWatch")
+        //Открываем
+        myApp.clickAndWaitForNewWindow(10000)
+
+        //находим в нём кнопку и нажимаем её
+        val startButton = uiDevice.findObject(By.res("ru.profitsw2000.stopwatch", "start_button"))
+        startButton.click()
     }
 }
